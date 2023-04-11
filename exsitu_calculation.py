@@ -1,5 +1,3 @@
-from constants import BASE_PATH
-
 import numpy as np
 import illustris_python.illustris_python as il
 
@@ -26,17 +24,17 @@ def get_insitu_stellar_particle_ids(basePath, subhalo_id, snapshot, previous_sna
     return formed_insitu, snapshot_time, particle_ids, masses
 
 
-def get_exsitu_fraction(subhalo_id, snapshot):
+def get_exsitu_fraction(base_path, subhalo_id, snapshot):
     """
         Calculate ex-situ fraction for subhalo_id at snapshot provided
     """
     fields = ['SubhaloMass','SubfindID','SnapNum']
-    tree = il.sublink.loadTree(BASE_PATH, snapshot, subhalo_id, fields=fields, onlyMPB=True)
+    tree = il.sublink.loadTree(base_path, snapshot, subhalo_id, fields=fields, onlyMPB=True)
 
     insitu_overall = set()
     previous = 0
     for i in reversed(range(len(tree['SnapNum'][:]))):
-        insitu, previous, all_ids, masses = get_insitu_stellar_particle_ids(BASE_PATH,
+        insitu, previous, all_ids, masses = get_insitu_stellar_particle_ids(base_path,
                                                                             tree['SubfindID'][i],
                                                                             tree['SnapNum'][i],
                                                                             previous)

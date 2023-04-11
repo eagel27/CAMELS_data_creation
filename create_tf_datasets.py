@@ -1,16 +1,17 @@
-from utils import *
-from itertools import repeat
-from exsitu_calculation import *
-from offsets import *
-from calculate_mw_met_age import  *
-from constants import *
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-from multiprocessing import Pool
 import tqdm
+from itertools import repeat
+from multiprocessing import Pool
+
+from utils import get_snapshot_values, get_catalog_data
+from exsitu_calculation import get_exsitu_fraction
+from offsets import create_offsets
+from calculate_mw_met_age import get_mass_weighted_age_met
+from constants import SNAPSHOTS, TOTAL_SNAPSHOTS, BASE_PATH, OFFSETS_PATH, MET_AGE_PATH, \
+    EXSITU_PATH, SIM_DIR, DATASET_PATH
 
 
 def calc_offsets_sim():
@@ -18,12 +19,14 @@ def calc_offsets_sim():
         os.makedirs(OFFSETS_PATH)
 
     pool = Pool(processes=4)
-    results = list(tqdm.tqdm(pool.starmap(create_offsets, zip(range(34))),
-                             total=34))
+    tqdm.tqdm(pool.starmap(create_offsets, zip(repeat(BASE_PATH),
+                                               repeat(OFFSETS_PATH),
+                                               range(TOTAL_SNAPSHOTS))),
+              total=TOTAL_SNAPSHOTS)
     pool.close()
     pool.join()
 
-    
+
 def calc_met_age_sim():
     if not os.path.exists(MET_AGE_PATH):
         os.makedirs(MET_AGE_PATH)
@@ -36,7 +39,9 @@ def calc_met_age_sim():
 
         pool = Pool(processes=4)
         results = list(tqdm.tqdm(pool.starmap(get_mass_weighted_age_met, 
-                                              zip(galaxy_ids, repeat(snapshot))),
+                                              zip(repeat(BASE_PATH),
+                                                  galaxy_ids,
+                                                  repeat(snapshot))),
                                  total=len(galaxy_ids)))
 
         pool.close()
@@ -62,7 +67,9 @@ def calc_exsitu_sim():
 
         pool = Pool(processes=4)
         results = list(tqdm.tqdm(pool.starmap(get_exsitu_fraction, 
-                                              zip(galaxy_ids, repeat(snapshot))),
+                                              zip(repeat(BASE_PATH),
+                                                  galaxy_ids,
+                                                  repeat(snapshot))),
                                  total=len(galaxy_ids)))
 
         pool.close()

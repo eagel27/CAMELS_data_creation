@@ -1,8 +1,8 @@
 import numpy as np
 import illustris_python.illustris_python as il
 
-from utils import *
-from constants import *
+from utils import get_snapshot_values
+from constants import SOLAR_METALLICITY
 
 
 def calculate_age(expansionFactor, hubble_param, omega0, omegaLambda):
@@ -18,13 +18,13 @@ def calculate_age(expansionFactor, hubble_param, omega0, omegaLambda):
     return time
 
 
-def get_mass_weighted_age_met(subhalo_id, snapshot):
+def get_mass_weighted_age_met(base_path, subhalo_id, snapshot):
     (scaling_factor, hubble_param,
-        boxsize, omega0, omegaLambda) = get_snapshot_values(BASE_PATH, snapshot)
+        boxsize, omega0, omegaLambda) = get_snapshot_values(base_path, snapshot)
 
     mw_age, mw_met = 0, 0
     fields = ['ParticleIDs', 'GFM_StellarFormationTime', 'GFM_Metallicity', 'Masses']   
-    stars = il.snapshot.loadSubhalo(BASE_PATH, snapshot, subhalo_id,
+    stars = il.snapshot.loadSubhalo(base_path, snapshot, subhalo_id,
                                     'stars', fields=fields)
     
     if stars['count'] > 0:

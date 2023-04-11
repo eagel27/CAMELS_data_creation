@@ -3,20 +3,18 @@ import numpy as np
 import h5py
 import illustris_python.illustris_python as il
 
-from constants import *
 
-
-def get_offsets(snapshot):
-    header = il.groupcat.loadHeader(BASE_PATH, snapshot)
+def get_offsets(base_path, snapshot):
+    header = il.groupcat.loadHeader(base_path, snapshot)
     scaling_factor = header['Time']
 
-    halos = il.groupcat.loadHalos(BASE_PATH, snapshot, fields=['GroupLenType', 'GroupNsubs'])
+    halos = il.groupcat.loadHalos(base_path, snapshot, fields=['GroupLenType', 'GroupNsubs'])
     halo_nsubs = halos['GroupNsubs']
     halo_offsets = halos['GroupLenType'].cumsum(axis=0)
     # Insert a zero-row in the beginning and remove last row
     halo_offsets = np.insert(halo_offsets, 0, 0, axis=0)[:-1, :]
     
-    subhalos = il.groupcat.loadSubhalos(BASE_PATH, snapshot, fields=['SubhaloLenType'])
+    subhalos = il.groupcat.loadSubhalos(base_path, snapshot, fields=['SubhaloLenType'])
     subhalo_offsets = subhalos.cumsum(axis=0)
     # Insert a zero-row in the beginning and remove last row
     subhalo_offsets = np.insert(subhalo_offsets, 0, 0, axis=0)[:-1, :]
@@ -37,8 +35,8 @@ def get_offsets(snapshot):
     return halo_offsets, subhalo_offsets_upd
 
 
-def save_offsets(snapshot, halo_offsets, subhalo_offsets):
-    offset_path = os.path.join(OFFSETS_PATH, 'offsets_%03d.hdf5' % snapshot)
+def save_offsets(offsets_path, snapshot, halo_offsets, subhalo_offsets):
+    offset_path = os.path.join(offsets_path, 'offsets_%03d.hdf5' % snapshot)
     with h5py.File(offset_path, 'w') as f:
         g_grp = f.create_group("Group")
         g_grp.create_dataset('SnapByType', data=halo_offsets)
@@ -46,7 +44,7 @@ def save_offsets(snapshot, halo_offsets, subhalo_offsets):
         s_grp.create_dataset('SnapByType', data=subhalo_offsets)
         
 
-def create_offsets(snapshot):
-    halo_offsets, subhalo_offsets = get_offsets(snapshot)
-    save_offsets(snapshot, halo_offsets, subhalo_offsets)
+def create_offsets(base_path, offsets_path, snapshot):
+    halo_offsets, subhalo_offsets = get_offsets(base_path, snapshot)
+    save_offsets(offsets_path, snapshot, halo_offsets, subhalo_offsets)
 
